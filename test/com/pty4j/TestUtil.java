@@ -31,6 +31,7 @@ public class TestUtil {
     return Paths.get("test/testData").toAbsolutePath().normalize().toString();
   }
 
+
   @NotNull
   public static String[] getJavaCommand(@NotNull Class<?> aClass, String... args) {
     List<String> result = new ArrayList<>();

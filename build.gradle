@@ -16,7 +16,10 @@ plugins {
   id 'java-library'
   id 'maven-publish'
   id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
+  id 'com.github.johnrengelman.shadow' version '7.1.1'
 }
+
+
 
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
@@ -24,9 +27,10 @@ apply plugin: 'signing'
 def pathToNativeInJar = 'resources/com/pty4j/native'
 def projectVersion = new File(rootProject.projectDir, 'VERSION').text
 
-version = projectVersion
-group = 'org.jetbrains.pty4j'
-archivesBaseName = 'pty4j'
+
+//version = projectVersion
+//group = 'org.jetbrains.pty4j'
+//archivesBaseName = 'pty4j'
 
 sourceSets {
   main {
@@ -81,6 +85,19 @@ jar {
   }
 }
 
+shadowJar {
+  from('os') {
+    include '**/*'
+    into pathToNativeInJar
+  }
+  archiveBaseName.set("pty4j-1.8")
+  archiveVersion.set("1.0.1.0")
+  archiveClassifier.set('')
+//  manifest {
+//    attributes 'Main-Class': ''
+//  }
+}
+
 task sourcesZip(type: Jar, dependsOn: classes) {
   archiveClassifier = 'sources'
   from sourceSets.main.allSource
@@ -111,7 +128,8 @@ task testJar(type: Test, dependsOn: [jar, testClasses]) {
 check.dependsOn test, testJar
 
 dependencies {
-  implementation 'org.jetbrains.pty4j:purejavacomm:0.0.11.1'
+//  implementation 'org.jetbrains.pty4j:purejavacomm:0.0.11.1'
+//  implementation 'com.github.purejavacomm:purejavacomm:1.0.2.RELEASE'
   implementation 'org.jetbrains:annotations:20.1.0'
   implementation "org.slf4j:slf4j-api:1.7.36"
   implementation 'net.java.dev.jna:jna:5.12.1'

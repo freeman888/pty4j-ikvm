@@ -10,8 +10,9 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 
 public class PtyProcessBuilder {
@@ -32,10 +33,53 @@ public class PtyProcessBuilder {
   private boolean myUseWinConPty = false;
 
   public PtyProcessBuilder() {
+//    try {
+//      test();
+//    } catch (IOException | InterruptedException e) {
+//      throw new RuntimeException(e);
+//    }
   }
 
   public PtyProcessBuilder(@NotNull String[] command) {
     myCommand = command;
+  }
+
+  public static void test() throws IOException, InterruptedException {
+    Map<String, String> envs = new HashMap<>(System.getenv());
+    envs.put("TERM", "xterm-256color");
+    PtyProcess ptyProcess = new PtyProcessBuilder()
+            .setCommand(new String[]{"zsh","--login"})
+            .setEnvironment(envs)
+            .start();
+    Thread thread = new Thread(()->{
+      InputStreamReader reader = (new InputStreamReader(ptyProcess.getInputStream()));
+
+      while (true) {
+        try {
+          System.out.write(reader.read());
+          System.out.flush();
+        } catch (IOException e) {
+          break;
+        }
+      }
+      System.out.println("exited");
+      System.out.flush();
+    });
+    thread.start();
+
+    OutputStream outputStream = ptyProcess.getOutputStream();
+    outputStream.write("echo ".getBytes(StandardCharsets.UTF_8));
+    Thread.sleep(500);
+    outputStream.write('h');
+    Thread.sleep(500);
+    outputStream.write('h');
+    Thread.sleep(500);
+    outputStream.write('h');
+    Thread.sleep(500);
+    outputStream.write('h');
+    Thread.sleep(1000);
+    outputStream.write('\r');
+    Console console = System.console();
   }
 
   @NotNull
@@ -43,6 +87,8 @@ public class PtyProcessBuilder {
     myCommand = command;
     return this;
   }
+
+
 
   @NotNull
   public PtyProcessBuilder setEnvironment(@Nullable Map<String, String> environment) {

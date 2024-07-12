@@ -56,6 +56,44 @@ public class PtyTest extends TestCase {
     TestUtil.setLocalPtyLib();
   }
 
+  public void testMe() throws IOException, InterruptedException {
+    Map<String, String> envs = new HashMap<>(System.getenv());
+    envs.put("TERM", "xterm-256color");
+    PtyProcess ptyProcess = new PtyProcessBuilder()
+            .setCommand(new String[]{"sh","--login"})
+            .setEnvironment(envs)
+            .start();
+    Thread thread = new Thread(()->{
+      InputStreamReader reader = (new InputStreamReader(ptyProcess.getInputStream()));
+
+      while (true) {
+        try {
+          System.out.write(reader.read());
+          System.out.flush();
+        } catch (IOException e) {
+          break;
+        }
+      }
+      System.out.println("exited");
+      System.out.flush();
+    });
+    thread.start();
+
+    OutputStream outputStream = ptyProcess.getOutputStream();
+    outputStream.write("echo ".getBytes(StandardCharsets.UTF_8));
+    Thread.sleep(500);
+    outputStream.write('h');
+    Thread.sleep(500);
+    outputStream.write('h');
+    Thread.sleep(500);
+    outputStream.write('h');
+    Thread.sleep(500);
+    outputStream.write('h');
+    Thread.sleep(1000);
+    outputStream.write('\r');
+    Console console = System.console();
+  }
+
   public void testDestroy() throws Exception {
     PtyProcess process = new PtyProcessBuilder(
       TestUtil.getJavaCommand(RepeatTextWithTimeout.class, "2", "1000000", "Hello, World")
